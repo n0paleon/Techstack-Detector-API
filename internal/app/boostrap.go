@@ -40,6 +40,7 @@ func BootstrapDetectionService() *service.DetectionService {
 	reg.Register(wordpress.NewWordPressDetector())
 	reg.Register(cloudflare.NewCloudFlare())
 	reg.Register(webserver.NewNginx())
+	reg.Register(webserver.NewApacheHTTPD())
 	// TODO: implement new detector
 
 	// 5️⃣ Detection service
