@@ -2,7 +2,7 @@ package app
 
 import (
 	"TechstackDetectorAPI/internal/adapters/detector/cloudflare"
-	"TechstackDetectorAPI/internal/adapters/detector/nginx"
+	"TechstackDetectorAPI/internal/adapters/detector/webserver"
 	"TechstackDetectorAPI/internal/adapters/detector/wordpress"
 	"TechstackDetectorAPI/internal/adapters/fetcher"
 	"TechstackDetectorAPI/internal/adapters/registry"
@@ -39,7 +39,7 @@ func BootstrapDetectionService() *service.DetectionService {
 
 	reg.Register(wordpress.NewWordPressDetector())
 	reg.Register(cloudflare.NewCloudFlare())
-	reg.Register(nginx.NewNginx())
+	reg.Register(webserver.NewNginx())
 	// TODO: implement new detector
 
 	// 5️⃣ Detection service

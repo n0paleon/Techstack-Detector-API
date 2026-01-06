@@ -1,4 +1,4 @@
-package nginx
+package webserver
 
 import (
 	"TechstackDetectorAPI/internal/core/catalog"
@@ -11,21 +11,21 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Detector struct{}
+type NginxDetector struct{}
 
 func NewNginx() ports.Detector {
-	return &Detector{}
+	return &NginxDetector{}
 }
 
-func (d *Detector) Name() string {
-	return "nginx"
+func (d *NginxDetector) Name() string {
+	return "webserver"
 }
 
-func (d *Detector) FetchPlan(_ string) *domain.FetchPlan {
+func (d *NginxDetector) FetchPlan(_ string) *domain.FetchPlan {
 	return nil
 }
 
-func (d *Detector) Detect(ctx *domain.FetchContext) ([]domain.Technology, error) {
+func (d *NginxDetector) Detect(ctx *domain.FetchContext) ([]domain.Technology, error) {
 	if ctx == nil || len(ctx.HTTP) == 0 {
 		return nil, nil
 	}
@@ -54,7 +54,7 @@ func detectFromHeader(r *domain.HTTPResult) *domain.Technology {
 	}
 
 	serverLower := strings.ToLower(server)
-	if !strings.Contains(serverLower, "nginx") {
+	if !strings.Contains(serverLower, "webserver") {
 		return nil
 	}
 
@@ -73,23 +73,23 @@ func detectFromBody(r *domain.HTTPResult) *domain.Technology {
 
 	score := 0
 
-	// <title>Welcome to nginx!</title>
+	// <title>Welcome to webserver!</title>
 	title := strings.ToLower(strings.TrimSpace(doc.Find("title").First().Text()))
-	if strings.Contains(title, "welcome to nginx") {
+	if strings.Contains(title, "welcome to webserver") {
 		score++
 	}
 
-	// <h1>Welcome to nginx!</h1>
+	// <h1>Welcome to webserver!</h1>
 	doc.Find("h1").EachWithBreak(func(_ int, s *goquery.Selection) bool {
 		text := strings.ToLower(strings.TrimSpace(s.Text()))
-		if text == "welcome to nginx!" || text == "welcome to nginx" {
+		if text == "welcome to webserver!" || text == "welcome to webserver" {
 			score++
 			return false
 		}
 		return true
 	})
 
-	// a href => nginx.org / nginx.com
+	// a href => webserver.org / webserver.com
 	doc.Find("a").EachWithBreak(func(_ int, s *goquery.Selection) bool {
 		href, exists := s.Attr("href")
 		if !exists {
@@ -97,17 +97,17 @@ func detectFromBody(r *domain.HTTPResult) *domain.Technology {
 		}
 
 		href = strings.ToLower(href)
-		if strings.Contains(href, "nginx.org") || strings.Contains(href, "nginx.com") {
+		if strings.Contains(href, "webserver.org") || strings.Contains(href, "webserver.com") {
 			score++
 			return false
 		}
 		return true
 	})
 
-	// "Thank you for using nginx."
+	// "Thank you for using webserver."
 	doc.Find("em").EachWithBreak(func(_ int, s *goquery.Selection) bool {
 		text := strings.ToLower(s.Text())
-		if strings.Contains(text, "thank you for using nginx") {
+		if strings.Contains(text, "thank you for using webserver") {
 			score++
 			return false
 		}
