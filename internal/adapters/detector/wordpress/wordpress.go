@@ -116,15 +116,15 @@ func (d *WordPressDetector) Detect(
 	// ===== FINAL DECISION =====
 	// wp-json (1) + minimal 1 strong signal
 	if score >= 2 {
-		version := d.getVersion(fc.HTTP["root"].Body)
+		version := getWordPressVersion(fc.HTTP["root"].Body)
 
-		return []domain.Technology{catalog.WordPress(version)}, nil
+		return []domain.Technology{*catalog.WordPress(version)}, nil
 	}
 
 	return nil, nil
 }
 
-func (d *WordPressDetector) getVersion(html []byte) string {
+func getWordPressVersion(html []byte) string {
 	if len(html) == 0 {
 		return ""
 	}

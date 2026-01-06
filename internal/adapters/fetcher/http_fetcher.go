@@ -1,22 +1,26 @@
 package fetcher
 
 import (
+	"TechstackDetectorAPI/internal/core/domain"
 	"context"
 	"io"
 	"net/url"
 	"sync"
 
-	"TechstackDetectorAPI/internal/core/domain"
-
 	"github.com/go-resty/resty/v2"
+	"golang.org/x/sync/errgroup"
 )
 
 type HTTPFetcher struct {
-	client *resty.Client
+	client      *resty.Client
+	maxParallel int
 }
 
-func NewHTTPFetcher(client *resty.Client) *HTTPFetcher {
-	return &HTTPFetcher{client: client}
+func NewHTTPFetcher(client *resty.Client, maxParallel int) *HTTPFetcher {
+	return &HTTPFetcher{
+		client:      client,
+		maxParallel: maxParallel,
+	}
 }
 
 func (f *HTTPFetcher) Fetch(
@@ -28,27 +32,40 @@ func (f *HTTPFetcher) Fetch(
 	execCache := make(map[string]*domain.HTTPResult)
 
 	var mu sync.Mutex
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(f.maxParallel)
 
 	for _, r := range plan.Requests {
-		key := executionKey(plan.BaseURL, r)
+		r := r // capture loop variable
 
-		mu.Lock()
-		cached, ok := execCache[key]
-		mu.Unlock()
+		g.Go(func() error {
+			key := executionKey(plan.BaseURL, r)
 
-		if ok {
-			results[r.ID] = cloneWithID(cached, r.ID)
-			continue
-		}
+			// cek cache
+			mu.Lock()
+			cached, ok := execCache[key]
+			mu.Unlock()
 
-		res := f.execute(ctx, plan.BaseURL, r)
+			if ok {
+				mu.Lock()
+				results[r.ID] = cloneWithID(cached, r.ID)
+				mu.Unlock()
+				return nil
+			}
 
-		mu.Lock()
-		execCache[key] = res
-		results[r.ID] = cloneWithID(res, r.ID)
-		mu.Unlock()
+			// execute request
+			res := f.execute(ctx, plan.BaseURL, r)
+
+			mu.Lock()
+			execCache[key] = res
+			results[r.ID] = cloneWithID(res, r.ID)
+			mu.Unlock()
+
+			return nil
+		})
 	}
 
+	_ = g.Wait()
 	return results
 }
 

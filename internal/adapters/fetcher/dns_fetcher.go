@@ -3,13 +3,18 @@ package fetcher
 import (
 	"TechstackDetectorAPI/internal/core/domain"
 	"context"
+	"errors"
 	"strings"
+	"sync"
 
 	"github.com/miekg/dns"
+	"golang.org/x/sync/errgroup"
 )
 
 type DNSFetcher struct {
-	resolver string // dns server resolver, eg: 1.1.1.1:53 or 8.8.8.8:53
+	resolver    string
+	client      *dns.Client
+	maxParallel int
 }
 
 func (f *DNSFetcher) Fetch(ctx context.Context, host string) *domain.DNSResult {
@@ -17,45 +22,57 @@ func (f *DNSFetcher) Fetch(ctx context.Context, host string) *domain.DNSResult {
 		Records: make(map[string][]domain.DNSRecord),
 	}
 
-	recordTypes := map[string]uint16{
-		"A":     dns.TypeA,
-		"AAAA":  dns.TypeAAAA,
-		"CNAME": dns.TypeCNAME,
-		"MX":    dns.TypeMX,
-		"TXT":   dns.TypeTXT,
-		"NS":    dns.TypeNS,
-		"SOA":   dns.TypeSOA,
-		"SRV":   dns.TypeSRV,
+	var mu sync.Mutex
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(f.maxParallel)
+
+	for recordType := range recordTypeMap {
+		recordType := recordType // capture
+
+		g.Go(func() error {
+			records, err := f.Query(ctx, host, recordType)
+			if err != nil || len(records) == 0 {
+				return nil
+			}
+
+			mu.Lock()
+			result.Records[recordType] = records
+			mu.Unlock()
+
+			return nil
+		})
 	}
 
-	for name, qtype := range recordTypes {
-		records := f.query(ctx, host, qtype)
-		if len(records) > 0 {
-			result.Records[name] = records
-		}
-	}
-
+	_ = g.Wait()
 	return result
 }
 
-func (f *DNSFetcher) query(
+func (f *DNSFetcher) Query(
 	ctx context.Context,
 	host string,
-	qtype uint16,
-) []domain.DNSRecord {
+	recordType string,
+) ([]domain.DNSRecord, error) {
+
+	qtype, ok := recordTypeMap[strings.ToUpper(recordType)]
+	if !ok {
+		return nil, errors.New("unsupported DNS record type")
+	}
 
 	m := new(dns.Msg)
 	m.SetQuestion(dns.Fqdn(host), qtype)
 
-	c := new(dns.Client)
-	resp, _, err := c.ExchangeContext(ctx, m, f.resolver)
+	resp, _, err := f.client.ExchangeContext(ctx, m, f.resolver)
 	if err != nil || resp == nil {
-		return nil
+		return nil, err
 	}
 
+	return parseAnswers(resp.Answer), nil
+}
+
+func parseAnswers(answers []dns.RR) []domain.DNSRecord {
 	var records []domain.DNSRecord
 
-	for _, ans := range resp.Answer {
+	for _, ans := range answers {
 		h := ans.Header()
 
 		switch v := ans.(type) {
@@ -121,8 +138,10 @@ func (f *DNSFetcher) query(
 	return records
 }
 
-func NewDNSFetcher(resolver string) *DNSFetcher {
+func NewDNSFetcher(resolver string, maxParallel int) *DNSFetcher {
 	return &DNSFetcher{
-		resolver: resolver,
+		resolver:    resolver,
+		client:      &dns.Client{},
+		maxParallel: maxParallel,
 	}
 }

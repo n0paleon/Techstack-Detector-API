@@ -24,7 +24,7 @@ func TestHTTPFetcher_Fetch(t *testing.T) {
 	defer server.Close()
 
 	client := resty.New()
-	fetcher := NewHTTPFetcher(client)
+	fetcher := NewHTTPFetcher(client, 5)
 
 	t.Run("Success fetch multiple requests with caching", func(t *testing.T) {
 		plan := domain.FetchPlan{

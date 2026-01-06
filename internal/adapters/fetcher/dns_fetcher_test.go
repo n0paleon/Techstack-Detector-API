@@ -52,7 +52,7 @@ func (s *DNSFetcherTestSuite) SetupSuite() {
 		}
 	}()
 
-	s.fetcher = NewDNSFetcher(s.addr)
+	s.fetcher = NewDNSFetcher(s.addr, 10)
 }
 
 func (s *DNSFetcherTestSuite) TearDownSuite() {

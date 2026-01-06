@@ -1,6 +1,8 @@
 package domain
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type FetchContext struct {
 	Target string
@@ -8,6 +10,8 @@ type FetchContext struct {
 	DNS  *DNSResult
 	TLS  *TLSResult
 	HTTP map[string]*HTTPResult // key = request ID
+
+	DNSFetcher DNSFetcher // custom DNS Fetcher interface
 }
 
 type FetchPlan struct {

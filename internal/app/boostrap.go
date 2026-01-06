@@ -2,6 +2,7 @@ package app
 
 import (
 	"TechstackDetectorAPI/internal/adapters/detector/cloudflare"
+	"TechstackDetectorAPI/internal/adapters/detector/nginx"
 	"TechstackDetectorAPI/internal/adapters/detector/wordpress"
 	"TechstackDetectorAPI/internal/adapters/fetcher"
 	"TechstackDetectorAPI/internal/adapters/registry"
@@ -22,8 +23,8 @@ func BootstrapDetectionService() *service.DetectionService {
 	//SetRetryCount() // TODO: implement advance retry mechanism
 
 	// 2️⃣ Fetchers
-	httpFetcher := fetcher.NewHTTPFetcher(httpClient)
-	dnsFetcher := fetcher.NewDNSFetcher("1.1.1.1:53")
+	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 5)
+	dnsFetcher := fetcher.NewDNSFetcher("1.1.1.1:53", 10)
 
 	orchestrator := fetcher.New(
 		httpFetcher,
@@ -38,6 +39,7 @@ func BootstrapDetectionService() *service.DetectionService {
 
 	reg.Register(wordpress.NewWordPressDetector())
 	reg.Register(cloudflare.NewCloudFlare())
+	reg.Register(nginx.NewNginx())
 	// TODO: implement new detector
 
 	// 5️⃣ Detection service

@@ -69,8 +69,9 @@ func (o *Orchestrator) Fetch(
 	}
 
 	return &domain.FetchContext{
-		Target: plan.BaseURL,
-		DNS:    dnsResult,
-		HTTP:   httpResults,
+		Target:     plan.BaseURL,
+		DNS:        dnsResult,
+		HTTP:       httpResults,
+		DNSFetcher: o.dnsFetcher,
 	}, nil
 }
