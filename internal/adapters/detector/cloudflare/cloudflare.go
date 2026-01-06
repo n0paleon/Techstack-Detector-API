@@ -159,5 +159,5 @@ func (d *CloudFlare) isCloudflareIP(ip string) bool {
 	return false
 }
 
-func (d *CloudFlare) Name() string                              { return "cloudflare" }
-func (d *CloudFlare) FetchPlan(target string) *domain.FetchPlan { return nil }
+func (d *CloudFlare) Name() string                         { return "cloudflare" }
+func (d *CloudFlare) FetchPlan(_ string) *domain.FetchPlan { return nil }

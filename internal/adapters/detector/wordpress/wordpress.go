@@ -140,7 +140,7 @@ func getWordPressVersion(html []byte) string {
 		return ""
 	}
 
-	re := regexp.MustCompile(`(?i)wordpress\s+([\d\.]+)`)
+	re := regexp.MustCompile(`(?i)wordpress\s+([\d.]+)`)
 	match := re.FindStringSubmatch(content)
 	if len(match) != 2 {
 		return ""

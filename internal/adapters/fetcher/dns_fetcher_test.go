@@ -23,7 +23,7 @@ func (s *DNSFetcherTestSuite) SetupSuite() {
 	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
 	s.NoError(err)
 	s.addr = pc.LocalAddr().String()
-	pc.Close()
+	_ = pc.Close()
 
 	// Handler untuk menjawab query DNS dummy
 	dns.HandleFunc("example.com.", func(w dns.ResponseWriter, r *dns.Msg) {
@@ -42,7 +42,7 @@ func (s *DNSFetcherTestSuite) SetupSuite() {
 			rr, _ := dns.NewRR("example.com. 3600 IN MX 10 mail.example.com.")
 			m.Answer = append(m.Answer, rr)
 		}
-		w.WriteMsg(m)
+		_ = w.WriteMsg(m)
 	})
 
 	s.server = &dns.Server{Addr: s.addr, Net: "udp"}
@@ -56,7 +56,7 @@ func (s *DNSFetcherTestSuite) SetupSuite() {
 }
 
 func (s *DNSFetcherTestSuite) TearDownSuite() {
-	s.server.Shutdown()
+	_ = s.server.Shutdown()
 }
 
 func (s *DNSFetcherTestSuite) TestFetch_Success() {

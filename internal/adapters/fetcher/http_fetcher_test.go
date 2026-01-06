@@ -16,7 +16,7 @@ func TestHTTPFetcher_Fetch(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/robots.txt" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("User-agent: *"))
+			_, _ = w.Write([]byte("User-agent: *"))
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)

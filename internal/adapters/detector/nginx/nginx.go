@@ -21,7 +21,7 @@ func (d *Detector) Name() string {
 	return "nginx"
 }
 
-func (d *Detector) FetchPlan(target string) *domain.FetchPlan {
+func (d *Detector) FetchPlan(_ string) *domain.FetchPlan {
 	return nil
 }
 
