@@ -1,7 +1,9 @@
 package service
 
 import (
+	"TechstackDetectorAPI/internal/shared/util"
 	"context"
+	"sort"
 	"sync"
 
 	"TechstackDetectorAPI/internal/core/domain"
@@ -33,16 +35,16 @@ func (s *DetectionService) Detect(
 
 	detectors := s.registry.List()
 
-	// 1️⃣ Build FetchPlan
+	// build FetchPlan
 	plan := s.buildFetchPlan(target, detectors)
 
-	// 2️⃣ Execute fetch
+	// execute fetch
 	fetchCtx, err := s.fetcher.Fetch(ctx, &plan)
 	if err != nil {
 		return nil, err
 	}
 
-	// 3️⃣ Run detectors concurrently
+	// run detectors concurrently
 	out := make(chan []domain.Technology)
 	var wg sync.WaitGroup
 
@@ -65,13 +67,29 @@ func (s *DetectionService) Detect(
 		close(out)
 	}()
 
-	// 4️⃣ Aggregate & dedup
+	// aggregate + dedup + prioritize
+	return s.aggregateTechnologies(out), nil
+}
+
+func (s *DetectionService) aggregateTechnologies(
+	in <-chan []domain.Technology,
+) []domain.Technology {
+
 	uniq := make(map[string]domain.Technology)
 
-	for techs := range out {
+	for techs := range in {
 		for _, t := range techs {
 			fp := t.Fingerprint()
-			uniq[fp] = t
+
+			existing, ok := uniq[fp]
+			if !ok {
+				uniq[fp] = t
+				continue
+			}
+
+			if t.Score() > existing.Score() {
+				uniq[fp] = t
+			}
 		}
 	}
 
@@ -80,7 +98,11 @@ func (s *DetectionService) Detect(
 		result = append(result, t)
 	}
 
-	return result, nil
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Score() > result[j].Score()
+	})
+
+	return result
 }
 
 func (s *DetectionService) buildFetchPlan(
@@ -101,7 +123,7 @@ func (s *DetectionService) buildFetchPlan(
 		// TODO: implement js fetch plan
 	}
 
-	reqMap := make(map[string]domain.FetchRequest)
+	reqMap := make(map[string]domain.FetchRequest) // key = executionKey
 
 	for _, d := range detectors {
 		if p := d.FetchPlan(target); p != nil {
@@ -109,8 +131,9 @@ func (s *DetectionService) buildFetchPlan(
 			plan.JS = plan.JS || p.JS
 
 			for _, r := range p.Requests {
-				if _, ok := reqMap[r.ID]; !ok {
-					reqMap[r.ID] = r
+				key := util.ExecutionKey(target, r)
+				if _, ok := reqMap[key]; !ok {
+					reqMap[key] = r
 				}
 			}
 		}

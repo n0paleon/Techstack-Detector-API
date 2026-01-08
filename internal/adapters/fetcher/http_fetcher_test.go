@@ -1,6 +1,7 @@
 package fetcher
 
 import (
+	"TechstackDetectorAPI/internal/shared/util"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -71,13 +72,13 @@ func TestHTTPFetcher_Fetch(t *testing.T) {
 func TestHelperFunctions(t *testing.T) {
 	t.Run("executionKey should be consistent", func(t *testing.T) {
 		req := domain.FetchRequest{Path: "/test", Method: "POST"}
-		key := executionKey("http://api.com", req)
+		key := util.ExecutionKey("http://api.com", req)
 		assert.Equal(t, "POST|http://api.com|/test", key)
 	})
 
 	t.Run("cloneWithID should not mutate original", func(t *testing.T) {
 		original := &domain.HTTPResult{RequestID: "old"}
-		cloned := cloneWithID(original, "new")
+		cloned := util.CloneWithID(original, "new")
 
 		assert.Equal(t, "new", cloned.RequestID)
 		assert.Equal(t, "old", original.RequestID)

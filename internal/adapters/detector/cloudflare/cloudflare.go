@@ -136,7 +136,7 @@ func (d *CloudFlare) matchCloudflareByHost(
 
 func (d *CloudFlare) buildResult() []domain.Technology {
 	return []domain.Technology{
-		*catalog.CloudFlare(),
+		*catalog.CloudFlare(""),
 	}
 }
 

@@ -2,9 +2,9 @@ package fetcher
 
 import (
 	"TechstackDetectorAPI/internal/core/domain"
+	"TechstackDetectorAPI/internal/shared/util"
 	"context"
 	"io"
-	"net/url"
 	"sync"
 
 	"github.com/go-resty/resty/v2"
@@ -27,7 +27,6 @@ func (f *HTTPFetcher) Fetch(
 	ctx context.Context,
 	plan domain.FetchPlan,
 ) map[string]*domain.HTTPResult {
-
 	results := make(map[string]*domain.HTTPResult)
 	execCache := make(map[string]*domain.HTTPResult)
 
@@ -39,7 +38,7 @@ func (f *HTTPFetcher) Fetch(
 		r := r // capture loop variable
 
 		g.Go(func() error {
-			key := executionKey(plan.BaseURL, r)
+			key := util.ExecutionKey(plan.BaseURL, r)
 
 			// cek cache
 			mu.Lock()
@@ -48,7 +47,7 @@ func (f *HTTPFetcher) Fetch(
 
 			if ok {
 				mu.Lock()
-				results[r.ID] = cloneWithID(cached, r.ID)
+				results[r.ID] = util.CloneWithID(cached, r.ID)
 				mu.Unlock()
 				return nil
 			}
@@ -58,7 +57,7 @@ func (f *HTTPFetcher) Fetch(
 
 			mu.Lock()
 			execCache[key] = res
-			results[r.ID] = cloneWithID(res, r.ID)
+			results[r.ID] = util.CloneWithID(res, r.ID)
 			mu.Unlock()
 
 			return nil
@@ -79,7 +78,7 @@ func (f *HTTPFetcher) execute(
 		SetContext(ctx).
 		SetDoNotParseResponse(true)
 
-	target := joinURL(baseURL, r.Path)
+	target := util.JoinURL(baseURL, r.Path)
 
 	resp, err := req.Execute(r.HTTPMethod(), target)
 	if err != nil {
@@ -104,19 +103,4 @@ func (f *HTTPFetcher) execute(
 		Headers:    resp.Header(),
 		Body:       body,
 	}
-}
-
-func executionKey(baseURL string, r domain.FetchRequest) string {
-	return r.HTTPMethod() + "|" + baseURL + "|" + r.Path
-}
-
-func cloneWithID(src *domain.HTTPResult, id string) *domain.HTTPResult {
-	cp := *src
-	cp.RequestID = id
-	return &cp
-}
-
-func joinURL(base, path string) string {
-	u, _ := url.JoinPath(base, path)
-	return u
 }

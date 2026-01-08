@@ -11,6 +11,8 @@ type DetectHandler struct {
 	svc *service.DetectionService
 }
 
+// TODO: add url filtering before processing
+
 func (h *DetectHandler) FastDetect(c echo.Context) error {
 	target := c.QueryParam("target")
 	if target == "" {

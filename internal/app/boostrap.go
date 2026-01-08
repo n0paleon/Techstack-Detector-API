@@ -2,6 +2,7 @@ package app
 
 import (
 	"TechstackDetectorAPI/internal/adapters/detector/cloudflare"
+	"TechstackDetectorAPI/internal/adapters/detector/php"
 	"TechstackDetectorAPI/internal/adapters/detector/webserver"
 	"TechstackDetectorAPI/internal/adapters/detector/wordpress"
 	"TechstackDetectorAPI/internal/adapters/fetcher"
@@ -17,13 +18,15 @@ import (
 )
 
 func BootstrapDetectionService() *service.DetectionService {
-	// 1️⃣ HTTP client
+	// 1️⃣ Resty V2 HTTP client
 	httpClient := resty.New().
-		SetTimeout(10 * time.Second)
+		SetRedirectPolicy(resty.NoRedirectPolicy()). // no redirect
+		SetTimeout(10 * time.Second).
+		SetCookieJar(nil)
 	//SetRetryCount() // TODO: implement advance retry mechanism
 
 	// 2️⃣ Fetchers
-	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 5)
+	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 100)
 	dnsFetcher := fetcher.NewDNSFetcher("1.1.1.1:53", 10)
 
 	orchestrator := fetcher.New(
@@ -41,6 +44,7 @@ func BootstrapDetectionService() *service.DetectionService {
 	reg.Register(cloudflare.NewCloudFlare())
 	reg.Register(webserver.NewNginx())
 	reg.Register(webserver.NewApacheHTTPD())
+	reg.Register(php.NewPHPDetector())
 	// TODO: implement new detector
 
 	// 5️⃣ Detection service

@@ -2,7 +2,7 @@ package catalog
 
 import "TechstackDetectorAPI/internal/core/domain"
 
-func CloudFlare() *domain.Technology {
+func CloudFlare(_ string) *domain.Technology {
 	return &domain.Technology{
 		Name:        "Cloudflare",
 		Version:     "",

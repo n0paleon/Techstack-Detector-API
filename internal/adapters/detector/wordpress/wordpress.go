@@ -11,28 +11,23 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type WordPressDetector struct{}
+type WPDetector struct{}
 
-func NewWordPressDetector() *WordPressDetector {
-	return &WordPressDetector{}
+func NewWordPressDetector() *WPDetector {
+	return &WPDetector{}
 }
 
-func (d *WordPressDetector) Name() string {
+func (d *WPDetector) Name() string {
 	return "wordpress"
 }
 
-func (d *WordPressDetector) FetchPlan(target string) *domain.FetchPlan {
+func (d *WPDetector) FetchPlan(target string) *domain.FetchPlan {
 	return &domain.FetchPlan{
 		BaseURL: target,
 		Requests: []domain.FetchRequest{
 			{
-				ID:          "root",
-				Path:        "/",
-				Description: "Homepage HTML",
-			},
-			{
 				ID:          "wp-json",
-				Path:        "/wp-json/",
+				Path:        "/wp-json",
 				Description: "WordPress REST API",
 			},
 			{
@@ -44,7 +39,7 @@ func (d *WordPressDetector) FetchPlan(target string) *domain.FetchPlan {
 	}
 }
 
-func (d *WordPressDetector) Detect(
+func (d *WPDetector) Detect(
 	fc *domain.FetchContext,
 ) ([]domain.Technology, error) {
 
@@ -118,7 +113,10 @@ func (d *WordPressDetector) Detect(
 	if score >= 2 {
 		version := getWordPressVersion(fc.HTTP["root"].Body)
 
-		return []domain.Technology{*catalog.WordPress(version)}, nil
+		return []domain.Technology{
+			*catalog.WordPress(version),
+			*catalog.PHP(""),
+		}, nil
 	}
 
 	return nil, nil
