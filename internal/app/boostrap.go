@@ -9,6 +9,7 @@ import (
 	"TechstackDetectorAPI/internal/adapters/registry"
 	"TechstackDetectorAPI/internal/adapters/workerpool"
 	"TechstackDetectorAPI/internal/core/service"
+	"TechstackDetectorAPI/internal/shared/security"
 	echohttp "TechstackDetectorAPI/internal/transport/http/echo"
 	"TechstackDetectorAPI/internal/transport/http/handler"
 	"time"
@@ -18,14 +19,13 @@ import (
 )
 
 func BootstrapDetectionService() *service.DetectionService {
-	// 1️⃣ Resty V2 HTTP client
+	// resty V2 HTTP client
 	httpClient := resty.New().
 		SetRedirectPolicy(resty.NoRedirectPolicy()). // no redirect
 		SetTimeout(10 * time.Second).
-		SetCookieJar(nil)
-	//SetRetryCount() // TODO: implement advance retry mechanism
+		SetCookieJar(nil) // disable cookie storage (DO NOT REMOVE!!!)
 
-	// 2️⃣ Fetchers
+	// fetchers
 	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 100)
 	dnsFetcher := fetcher.NewDNSFetcher("1.1.1.1:53", 10)
 
@@ -34,10 +34,10 @@ func BootstrapDetectionService() *service.DetectionService {
 		dnsFetcher,
 	)
 
-	// 3️⃣ Worker pool
+	// worker pool
 	pool := workerpool.NewAntsPool(100)
 
-	// 4️⃣ Detector registry
+	// detector registry
 	reg := registry.NewDetectorRegistry()
 
 	reg.Register(wordpress.NewWordPressDetector())
@@ -47,11 +47,20 @@ func BootstrapDetectionService() *service.DetectionService {
 	reg.Register(php.NewPHPDetector())
 	// TODO: implement new detector
 
-	// 5️⃣ Detection service
+	// security layer
+	rules, err := security.LoadBlacklistFile("blacklist.txt")
+	if err != nil {
+		panic(err)
+	}
+	blacklist := security.NewBlacklist(rules)
+	targetValidator := security.NewTargetValidator(blacklist, dnsFetcher)
+
+	// detection service
 	return service.NewDetectionService(
 		reg,
 		orchestrator,
 		pool,
+		targetValidator,
 	)
 }
 

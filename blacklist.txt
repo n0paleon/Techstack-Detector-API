@@ -1,0 +1,18 @@
+# hostname
+# case-insensitive (google.com != www.google.com)!!!
+localhost
+internal
+local
+
+# ipv4
+127.0.0.1
+10.0.0.0/8
+172.16.0.0/12
+192.168.0.0/16
+
+# link-local
+169.254.0.0/16
+
+# ipv6
+::1
+fc00::/7

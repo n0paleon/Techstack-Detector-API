@@ -14,17 +14,20 @@ type DetectionService struct {
 	registry   ports.DetectorRegistry
 	fetcher    ports.Fetcher
 	workerPool ports.WorkerPool
+	validator  domain.TargetValidator
 }
 
 func NewDetectionService(
 	registry ports.DetectorRegistry,
 	fetcher ports.Fetcher,
 	workerPool ports.WorkerPool,
+	validator domain.TargetValidator,
 ) *DetectionService {
 	return &DetectionService{
 		registry:   registry,
 		fetcher:    fetcher,
 		workerPool: workerPool,
+		validator:  validator,
 	}
 }
 
@@ -32,11 +35,16 @@ func (s *DetectionService) Detect(
 	ctx context.Context,
 	target string,
 ) ([]domain.Technology, error) {
+	// target validation
+	resolved, err := s.validator.Validate(ctx, target)
+	if err != nil {
+		return nil, err
+	}
 
 	detectors := s.registry.List()
 
 	// build FetchPlan
-	plan := s.buildFetchPlan(target, detectors)
+	plan := s.buildFetchPlan(resolved.RawURL, detectors)
 
 	// execute fetch
 	fetchCtx, err := s.fetcher.Fetch(ctx, &plan)
