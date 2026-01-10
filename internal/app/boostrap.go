@@ -26,7 +26,7 @@ func BootstrapDetectionService() *service.DetectionService {
 		SetCookieJar(nil) // disable cookie storage (DO NOT REMOVE!!!)
 
 	// fetchers
-	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 100)
+	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 10)
 	dnsFetcher := fetcher.NewDNSFetcher("1.1.1.1:53", 10)
 
 	orchestrator := fetcher.New(
@@ -44,6 +44,7 @@ func BootstrapDetectionService() *service.DetectionService {
 	reg.Register(cloudflare.NewCloudFlare())
 	reg.Register(webserver.NewNginx())
 	reg.Register(webserver.NewApacheHTTPD())
+	reg.Register(webserver.NewLiteSpeed())
 	reg.Register(php.NewPHPDetector())
 	// TODO: implement new detector
 
