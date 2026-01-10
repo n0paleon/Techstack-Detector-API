@@ -2,6 +2,7 @@ package handler
 
 import (
 	"TechstackDetectorAPI/internal/core/service"
+	"TechstackDetectorAPI/internal/transport/http/dto"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -14,27 +15,25 @@ type DetectHandler struct {
 // TODO: add url filtering before processing
 
 func (h *DetectHandler) FastDetect(c echo.Context) error {
-	target := c.QueryParam("target")
-	if target == "" {
-		return c.JSON(http.StatusBadRequest, echo.Map{
-			"is_error": true,
-			"message":  "invalid target url",
-		})
+	request := new(dto.FastDetectRequest)
+	if err := c.Bind(request); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	// validate json body
+	if err := c.Validate(request); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.NewResponse(err, nil))
 	}
 
 	ctx := getRequestContext(c)
-	data, err := h.svc.Detect(ctx, target)
+	data, err := h.svc.Detect(ctx, request.Target)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"is_error": true,
-			"message":  err.Error(),
-		})
+		return c.JSON(http.StatusNotFound, dto.NewResponse(err, nil))
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"is_error": false,
-		"data":     data,
-	})
+	return c.JSON(http.StatusOK, dto.NewResponse(nil, echo.Map{
+		"result": data,
+	}))
 }
 
 func NewDetectHandler(svc *service.DetectionService) *DetectHandler {

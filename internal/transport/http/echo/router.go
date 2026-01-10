@@ -12,5 +12,5 @@ func RegisterRoutes(
 ) {
 	v1 := e.Group("/v1")
 
-	v1.GET("/fast-detect", detectHandler.FastDetect)
+	v1.POST("/fast-detect", detectHandler.FastDetect)
 }

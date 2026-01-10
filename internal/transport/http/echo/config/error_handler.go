@@ -2,16 +2,12 @@ package config
 
 import (
 	"TechstackDetectorAPI/internal/core/domain"
+	"TechstackDetectorAPI/internal/transport/http/dto"
 	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
-
-type ErrorResponse struct {
-	IsError bool   `json:"is_error"`
-	Message string `json:"message"`
-}
 
 func HTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
@@ -30,10 +26,7 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		message = err.Error()
 	}
 
-	errorJSON := ErrorResponse{
-		IsError: true,
-		Message: message,
-	}
+	errorJSON := dto.NewResponse(errors.New(message), nil)
 
 	if !c.Response().Committed {
 		if c.Request().Method == http.MethodHead {
