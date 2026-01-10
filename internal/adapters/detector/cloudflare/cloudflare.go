@@ -136,7 +136,7 @@ func (d *CloudFlare) matchCloudflareByHost(
 
 func (d *CloudFlare) buildResult() []domain.Technology {
 	return []domain.Technology{
-		*catalog.CloudFlare(""),
+		catalog.NewTechnology(d.ID(), ""),
 	}
 }
 
@@ -159,5 +159,7 @@ func (d *CloudFlare) isCloudflareIP(ip string) bool {
 	return false
 }
 
-func (d *CloudFlare) Name() string                         { return "cloudflare" }
+func (d *CloudFlare) ID() catalog.DetectorID {
+	return catalog.Cloudflare
+}
 func (d *CloudFlare) FetchPlan(_ string) *domain.FetchPlan { return nil }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"TechstackDetectorAPI/internal/core/catalog"
 	"TechstackDetectorAPI/internal/shared/util"
 	"context"
 	"sort"
@@ -152,4 +153,15 @@ func (s *DetectionService) buildFetchPlan(
 	}
 
 	return plan
+}
+
+func (s *DetectionService) DetectorList() []domain.Technology {
+	list := catalog.List()
+	result := make([]domain.Technology, 0, len(list))
+
+	for _, t := range list {
+		result = append(result, t)
+	}
+
+	return result
 }

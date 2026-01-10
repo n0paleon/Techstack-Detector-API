@@ -12,8 +12,8 @@ func NewPHPDetector() *PHPDetector {
 	return &PHPDetector{}
 }
 
-func (d *PHPDetector) Name() string {
-	return "php"
+func (d *PHPDetector) ID() catalog.DetectorID {
+	return catalog.PHP
 }
 
 func (d *PHPDetector) FetchPlan(target string) *domain.FetchPlan {
@@ -76,11 +76,11 @@ func (d *PHPDetector) Detect(ctx *domain.FetchContext) ([]domain.Technology, err
 	}
 
 	if detected {
-		tech := catalog.PHP("")
+		tech := catalog.NewTechnology(d.ID(), "")
 		if version != "" {
 			tech.Version = version
 		}
-		return []domain.Technology{*tech}, nil
+		return []domain.Technology{tech}, nil
 	}
 
 	return nil, nil

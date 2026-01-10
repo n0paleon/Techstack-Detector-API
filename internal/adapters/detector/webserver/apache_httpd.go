@@ -16,8 +16,8 @@ func NewApacheHTTPD() ports.Detector {
 	return &ApacheHTTPDDetector{}
 }
 
-func (d *ApacheHTTPDDetector) Name() string {
-	return "apache_httpd"
+func (d *ApacheHTTPDDetector) ID() catalog.DetectorID {
+	return catalog.ApacheHTTPD
 }
 
 func (d *ApacheHTTPDDetector) FetchPlan(_ string) *domain.FetchPlan {
@@ -57,7 +57,9 @@ func (d *ApacheHTTPDDetector) detectFromHeader(r *domain.HTTPResult) *domain.Tec
 		return nil
 	}
 
-	return catalog.ApacheHTTPD(d.extractVersion(server))
+	result := catalog.NewTechnology(d.ID(), d.extractVersion(server))
+
+	return &result
 }
 
 func (d *ApacheHTTPDDetector) detectFromBody(r *domain.HTTPResult) *domain.Technology {
@@ -92,7 +94,8 @@ func (d *ApacheHTTPDDetector) detectFromBody(r *domain.HTTPResult) *domain.Techn
 	})
 
 	if score >= 2 {
-		return catalog.ApacheHTTPD("")
+		result := catalog.NewTechnology(d.ID(), "")
+		return &result
 	}
 
 	return nil

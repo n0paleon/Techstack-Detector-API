@@ -17,8 +17,8 @@ func NewNginx() ports.Detector {
 	return &NginxDetector{}
 }
 
-func (d *NginxDetector) Name() string {
-	return "nginx"
+func (d *NginxDetector) ID() catalog.DetectorID {
+	return catalog.Nginx
 }
 
 func (d *NginxDetector) FetchPlan(_ string) *domain.FetchPlan {
@@ -58,7 +58,9 @@ func (d *NginxDetector) detectFromHeader(r *domain.HTTPResult) *domain.Technolog
 		return nil
 	}
 
-	return catalog.Nginx(d.extractVersion(server))
+	result := catalog.NewTechnology(d.ID(), d.extractVersion(server))
+
+	return &result
 }
 
 func (d *NginxDetector) detectFromBody(r *domain.HTTPResult) *domain.Technology {
@@ -115,7 +117,9 @@ func (d *NginxDetector) detectFromBody(r *domain.HTTPResult) *domain.Technology 
 	})
 
 	if score >= 2 {
-		return catalog.Nginx("")
+		result := catalog.NewTechnology(d.ID(), "")
+
+		return &result
 	}
 
 	return nil

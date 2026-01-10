@@ -1,6 +1,7 @@
 package global
 
 import (
+	"TechstackDetectorAPI/internal/core/catalog"
 	"TechstackDetectorAPI/internal/core/domain"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -25,8 +26,8 @@ func NewDetector() *Detector {
 	return &Detector{}
 }
 
-func (d *Detector) Name() string {
-	return "GLOBAL_DETECTOR"
+func (d *Detector) ID() catalog.DetectorID {
+	return catalog.GLOBAL
 }
 
 // FetchPlan in this file is used to manage a list of common requests such as homepage, random 404 requests, etc.

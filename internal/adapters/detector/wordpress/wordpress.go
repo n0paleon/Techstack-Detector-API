@@ -17,8 +17,8 @@ func NewWordPressDetector() *WPDetector {
 	return &WPDetector{}
 }
 
-func (d *WPDetector) Name() string {
-	return "wordpress"
+func (d *WPDetector) ID() catalog.DetectorID {
+	return catalog.WordPress
 }
 
 func (d *WPDetector) FetchPlan(target string) *domain.FetchPlan {
@@ -114,8 +114,8 @@ func (d *WPDetector) Detect(
 		version := getWordPressVersion(fc.HTTP["root"].Body)
 
 		return []domain.Technology{
-			*catalog.WordPress(version),
-			*catalog.PHP(""),
+			catalog.NewTechnology(d.ID(), version),
+			catalog.NewTechnology(catalog.PHP, ""),
 		}, nil
 	}
 

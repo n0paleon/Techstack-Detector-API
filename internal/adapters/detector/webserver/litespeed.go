@@ -13,8 +13,8 @@ func NewLiteSpeed() *LiteSpeedDetector {
 	return &LiteSpeedDetector{}
 }
 
-func (d *LiteSpeedDetector) Name() string {
-	return "litespeed"
+func (d *LiteSpeedDetector) ID() catalog.DetectorID {
+	return catalog.LiteSpeed
 }
 
 func (d *LiteSpeedDetector) FetchPlan(_ string) *domain.FetchPlan {
@@ -49,7 +49,7 @@ func (d *LiteSpeedDetector) Detect(ctx *domain.FetchContext) ([]domain.Technolog
 
 	var results []domain.Technology
 	if score >= 1 {
-		results = append(results, *catalog.LiteSpeed(""))
+		results = append(results, catalog.NewTechnology(d.ID(), ""))
 	}
 
 	return results, nil
