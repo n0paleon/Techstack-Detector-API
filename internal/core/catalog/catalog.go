@@ -24,6 +24,11 @@ func NewTechnology(id DetectorID, version string) domain.Technology {
 }
 
 // List return all available technology
-func List() map[DetectorID]domain.Technology {
-	return registry
+func List() []domain.Technology {
+	results := make([]domain.Technology, 0, len(registry))
+	for _, tech := range registry {
+		results = append(results, tech)
+	}
+
+	return results
 }

@@ -1,5 +1,7 @@
 package dto
 
+import "TechstackDetectorAPI/internal/core/domain"
+
 type Response struct {
 	IsError bool   `json:"is_error"`
 	Message string `json:"message,omitempty"`
@@ -17,4 +19,20 @@ func NewResponse(err error, data any) *Response {
 	}
 
 	return response
+}
+
+type DetectorList struct {
+	Name        string   `json:"name"`
+	Tags        []string `json:"tags"`
+	Description string   `json:"description"`
+	Link        string   `json:"link"`
+}
+
+func ConvertTechnologyToDetectorList(d domain.Technology) DetectorList {
+	return DetectorList{
+		Name:        d.Name,
+		Tags:        d.Tags,
+		Description: d.Description,
+		Link:        d.Link,
+	}
 }

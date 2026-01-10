@@ -156,12 +156,5 @@ func (s *DetectionService) buildFetchPlan(
 }
 
 func (s *DetectionService) DetectorList() []domain.Technology {
-	list := catalog.List()
-	result := make([]domain.Technology, 0, len(list))
-
-	for _, t := range list {
-		result = append(result, t)
-	}
-
-	return result
+	return catalog.List()
 }

@@ -14,6 +14,19 @@ type DetectHandler struct {
 
 // TODO: add url filtering before processing
 
+func (h *DetectHandler) DetectorList(c echo.Context) error {
+	list := h.svc.DetectorList()
+	results := make([]dto.DetectorList, 0, len(list))
+
+	for _, d := range list {
+		results = append(results, dto.ConvertTechnologyToDetectorList(d))
+	}
+
+	return c.JSON(http.StatusOK, dto.NewResponse(nil, echo.Map{
+		"detectors": results,
+	}))
+}
+
 func (h *DetectHandler) FastDetect(c echo.Context) error {
 	request := new(dto.FastDetectRequest)
 	if err := c.Bind(request); err != nil {
