@@ -17,7 +17,11 @@ func NewServer() *echo.Echo {
 	e.Validator = config.NewCustomValidator()
 
 	// middleware
-	e.Use(middleware.Recover())
+	e.Use(
+		middleware.Recover(),
+		middleware.ContextTimeout(30*time.Second),
+		middleware.BodyLimit("5MB"),
+	)
 
 	// TODO: implement advance server setup
 
