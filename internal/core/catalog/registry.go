@@ -49,4 +49,11 @@ var registry = map[DetectorID]domain.Technology{
 		Description: "WordPress is an open-source CMS.",
 		Link:        "https://wordpress.org/",
 	},
+	Laravel: {
+		Name:        "Laravel",
+		Tags:        []string{"web framework", "fullstack", "website development"},
+		Version:     "",
+		Description: "Laravel is a free and open-source PHP-based web framework for building web applications.",
+		Link:        "https://laravel.com/",
+	},
 }

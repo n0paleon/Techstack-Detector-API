@@ -2,6 +2,8 @@ package app
 
 import (
 	"TechstackDetectorAPI/internal/adapters/detector/cloudflare"
+	"TechstackDetectorAPI/internal/adapters/detector/global"
+	"TechstackDetectorAPI/internal/adapters/detector/laravel"
 	"TechstackDetectorAPI/internal/adapters/detector/php"
 	"TechstackDetectorAPI/internal/adapters/detector/webserver"
 	"TechstackDetectorAPI/internal/adapters/detector/wordpress"
@@ -23,7 +25,8 @@ func BootstrapDetectionService() *service.DetectionService {
 	httpClient := resty.New().
 		SetRedirectPolicy(resty.NoRedirectPolicy()). // no redirect
 		SetTimeout(10 * time.Second).
-		SetCookieJar(nil) // disable cookie storage (DO NOT REMOVE!!!)
+		SetResponseBodyLimit(50 * 1024 * 1024). // 50MB
+		SetCookieJar(nil)                       // disable cookie storage (DO NOT REMOVE!!!)
 
 	// fetchers
 	httpFetcher := fetcher.NewHTTPFetcher(httpClient, 10)
@@ -40,12 +43,16 @@ func BootstrapDetectionService() *service.DetectionService {
 	// detector registry
 	reg := registry.NewDetectorRegistry()
 
+	// global detector, do not remove
+	reg.Register(global.NewDetector())
+
 	reg.Register(wordpress.NewWordPressDetector())
 	reg.Register(cloudflare.NewCloudFlare())
 	reg.Register(webserver.NewNginx())
 	reg.Register(webserver.NewApacheHTTPD())
 	reg.Register(webserver.NewLiteSpeed())
 	reg.Register(php.NewPHPDetector())
+	reg.Register(laravel.NewLaravelDetector())
 	// TODO: implement new detector
 
 	// security layer

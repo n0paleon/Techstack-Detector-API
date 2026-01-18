@@ -7,8 +7,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 )
 
-type Detector struct {
-}
+type Detector struct{}
 
 var basePlan = []domain.FetchRequest{
 	{
@@ -17,10 +16,13 @@ var basePlan = []domain.FetchRequest{
 		Method:      "GET",
 		Description: "default homepage",
 	},
+	{
+		ID:          "global-env",
+		Path:        "/.env",
+		Method:      "GET",
+		Description: "Check for .env file exposure",
+	},
 }
-
-// please do not edit anything on this file except the FetchPlan
-// for more info, read README.md
 
 func NewDetector() *Detector {
 	return &Detector{}
@@ -30,25 +32,32 @@ func (d *Detector) ID() catalog.DetectorID {
 	return catalog.GLOBAL
 }
 
-// FetchPlan in this file is used to manage a list of common requests such as homepage, random 404 requests, etc.
-// for more info, please read the README.md
-func (d *Detector) FetchPlan(baseUrl string) *domain.FetchPlan {
-	reqs := make([]domain.FetchRequest, 0, len(basePlan)+1)
-	reqs = append(reqs, basePlan...)
+func (d *Detector) FetchPlan(baseURL string) *domain.FetchPlan {
+	// Create requests by copying basePlan and adding the random 404 request
+	requests := make([]domain.FetchRequest, len(basePlan), len(basePlan)+1)
+	copy(requests, basePlan)
 
-	reqs = append(reqs, domain.FetchRequest{
-		ID:          "random-404-error",
-		Path:        gofakeit.LetterN(25),
-		Method:      "GET",
-		Description: "trigger random 404 error",
-	})
+	requests = append(requests,
+		domain.FetchRequest{
+			ID:          "random-404-error",
+			Path:        gofakeit.LetterN(25),
+			Method:      "GET",
+			Description: "trigger random 404 error",
+		},
+		domain.FetchRequest{
+			ID:          "random-404-error-post-method",
+			Path:        gofakeit.LetterN(25),
+			Method:      "POST",
+			Description: "trigger random 404 error with POST method",
+		},
+	)
 
 	return &domain.FetchPlan{
-		BaseURL:  baseUrl,
-		Requests: reqs,
+		BaseURL:  baseURL,
+		Requests: requests,
 	}
 }
 
 func (d *Detector) Detect(_ *domain.FetchContext) ([]domain.Technology, error) {
-	return []domain.Technology{}, nil
+	return nil, nil
 }

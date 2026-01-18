@@ -83,35 +83,76 @@ func (s *DetectionService) Detect(
 func (s *DetectionService) aggregateTechnologies(
 	in <-chan []domain.Technology,
 ) []domain.Technology {
-
-	uniq := make(map[string]domain.Technology)
+	// Map to store best version of each technology
+	// Key: technology name, Value: best technology found
+	techMap := make(map[string]domain.Technology)
 
 	for techs := range in {
-		for _, t := range techs {
-			fp := t.Fingerprint()
+		for _, tech := range techs {
+			current, exists := techMap[tech.Name]
 
-			existing, ok := uniq[fp]
-			if !ok {
-				uniq[fp] = t
+			if !exists {
+				// First time seeing this technology
+				techMap[tech.Name] = tech
 				continue
 			}
 
-			if t.Score() > existing.Score() {
-				uniq[fp] = t
+			// Compare and keep the one with higher score
+			if s.compareTechnologies(tech, current) > 0 {
+				techMap[tech.Name] = tech
 			}
 		}
 	}
 
-	result := make([]domain.Technology, 0, len(uniq))
-	for _, t := range uniq {
-		result = append(result, t)
+	// Convert map to slice
+	result := make([]domain.Technology, 0, len(techMap))
+	for _, tech := range techMap {
+		result = append(result, tech)
 	}
 
+	// Sort by score descending
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].Score() > result[j].Score()
 	})
 
 	return result
+}
+
+// compareTechnologies returns:
+// 1 if tech1 is better than tech2
+// 0 if they're equal
+// -1 if tech2 is better than tech1
+func (s *DetectionService) compareTechnologies(tech1, tech2 domain.Technology) int {
+	score1 := tech1.Score()
+	score2 := tech2.Score()
+
+	// First compare by score
+	if score1 > score2 {
+		return 1
+	} else if score1 < score2 {
+		return -1
+	}
+
+	// If scores are equal, prefer the one with version
+	if tech1.Version != "" && tech2.Version == "" {
+		return 1
+	} else if tech1.Version == "" && tech2.Version != "" {
+		return -1
+	}
+
+	// If both have versions, prefer more specific version
+	if tech1.Version != "" && tech2.Version != "" {
+		// This is a simple comparison - you might want to implement
+		// semantic version comparison here
+		if len(tech1.Version) > len(tech2.Version) {
+			return 1
+		} else if len(tech1.Version) < len(tech2.Version) {
+			return -1
+		}
+	}
+
+	// If still equal, keep the first one (return 0)
+	return 0
 }
 
 func (s *DetectionService) buildFetchPlan(
@@ -125,6 +166,7 @@ func (s *DetectionService) buildFetchPlan(
 			{
 				ID:          "root",
 				Path:        "/",
+				Method:      "GET",
 				Description: "default target route",
 			},
 		},

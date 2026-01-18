@@ -8,7 +8,10 @@ import (
 	"sync"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/labstack/gommon/log"
 	"golang.org/x/sync/errgroup"
+
+	fakeua "github.com/EDDYCJY/fake-useragent"
 )
 
 type HTTPFetcher struct {
@@ -54,6 +57,9 @@ func (f *HTTPFetcher) Fetch(
 
 			// execute request
 			res := f.execute(ctx, plan.BaseURL, r)
+			if res == nil {
+				return nil
+			}
 
 			mu.Lock()
 			execCache[key] = res
@@ -73,20 +79,32 @@ func (f *HTTPFetcher) execute(
 	baseURL string,
 	r domain.FetchRequest,
 ) *domain.HTTPResult {
+	ua := fakeua.Mobile()
 
 	req := f.client.R().
 		SetContext(ctx).
+		SetHeader("User-Agent", ua).
 		SetDoNotParseResponse(true)
 
 	target := util.JoinURL(baseURL, r.Path)
 
 	resp, err := req.Execute(r.HTTPMethod(), target)
 	if err != nil {
+		if resp == nil || resp.StatusCode() == 0 {
+			log.Errorf("http_fetcher return nil response, err: %v", err)
+			return nil
+		}
+
 		return &domain.HTTPResult{
-			URL:   target,
-			Error: err,
+			RequestID:  r.ID,
+			StatusCode: resp.StatusCode(),
+			Headers:    resp.Header(),
+			Body:       resp.Body(),
+			URL:        target,
+			Error:      err,
 		}
 	}
+
 	defer resp.RawBody().Close()
 
 	body, _ := io.ReadAll(resp.RawBody())

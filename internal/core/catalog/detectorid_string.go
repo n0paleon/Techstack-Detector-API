@@ -15,11 +15,12 @@ func _() {
 	_ = x[LiteSpeed-4]
 	_ = x[Nginx-5]
 	_ = x[WordPress-6]
+	_ = x[Laravel-7]
 }
 
-const _DetectorID_name = "GLOBALcloudflarephp-programming-languageapache-httpdlitespeednginxwordpress"
+const _DetectorID_name = "GLOBALcloudflarephp-programming-languageapache-httpdlitespeednginxwordpresslaravel"
 
-var _DetectorID_index = [...]uint8{0, 6, 16, 40, 52, 61, 66, 75}
+var _DetectorID_index = [...]uint8{0, 6, 16, 40, 52, 61, 66, 75, 82}
 
 func (i DetectorID) String() string {
 	idx := int(i) - 0

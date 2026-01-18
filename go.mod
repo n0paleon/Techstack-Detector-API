@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/EDDYCJY/fake-useragent v0.2.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/brianvoe/gofakeit/v7 v7.14.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -30,6 +31,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect

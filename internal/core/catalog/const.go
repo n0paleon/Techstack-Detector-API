@@ -14,4 +14,5 @@ const (
 	LiteSpeed                     // litespeed
 	Nginx                         // nginx
 	WordPress                     // wordpress
+	Laravel                       // laravel
 )

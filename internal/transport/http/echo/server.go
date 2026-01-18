@@ -12,6 +12,7 @@ func NewServer() *echo.Echo {
 	e := echo.New()
 	e.JSONSerializer = &config.SonicJSONSerializer{}
 	e.Server.WriteTimeout = 30 * time.Second // 30s max write timeout
+	e.Server.ReadTimeout = 15 * time.Second
 	e.HTTPErrorHandler = config.HTTPErrorHandler
 	e.Validator = config.NewCustomValidator()
 
